@@ -23,6 +23,7 @@ type Award struct {
 	left             int
 	buf              []byte
 	oneAction        func()
+	noAwardAction    func()
 	leftChildAction  *ChildAction
 	rightChildAction *ChildAction
 }
@@ -51,10 +52,17 @@ func WithOneAction(one func()) Options {
 	}
 }
 
+func WithNoAwardAction(one func()) Options {
+	return func(a *Award) {
+		a.noAwardAction = one
+	}
+}
+
 func NewAward(opts ...Options) *Award {
 	a := &Award{
 		buf:              make([]byte, 16),
 		oneAction:        func() {},
+		noAwardAction:    func() {},
 		leftChildAction:  NewDummyChildAction(),
 		rightChildAction: NewDummyChildAction(),
 	}
@@ -119,11 +127,15 @@ func (a *Award) PickRightChild() {
 }
 
 func (a *Award) Pick() {
-	if a.OnePercentage() {
-		a.oneAction()
-	} else if a.FiftyPercentage() {
-		a.PickLeftChild()
+	if a.FiftyPercentage() {
+		if a.OnePercentage() {
+			a.oneAction()
+		} else if a.FiftyPercentage() {
+			a.PickLeftChild()
+		} else {
+			a.PickRightChild()
+		}
 	} else {
-		a.PickRightChild()
+		a.noAwardAction()
 	}
 }
