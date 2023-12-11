@@ -100,8 +100,8 @@ func (a *Award) OnePercentage() bool {
 func (a *Award) TwentyPercentage() bool {
 	a.checkOverhead(2)
 	base := a.buf[16-a.left:]
-	expect := base[0] % 20
-	r := base[1] % 20
+	expect := base[0] % 5
+	r := base[1] % 5
 	a.left -= 2
 	return r == expect
 }
@@ -127,15 +127,16 @@ func (a *Award) PickRightChild() {
 }
 
 func (a *Award) Pick() {
-	if a.FiftyPercentage() {
-		if a.OnePercentage() {
-			a.oneAction()
-		} else if a.FiftyPercentage() {
-			a.PickLeftChild()
-		} else {
-			a.PickRightChild()
-		}
-	} else {
+	if a.TwentyPercentage() {
 		a.noAwardAction()
+		return
+	}
+
+	if a.OnePercentage() {
+		a.oneAction()
+	} else if a.FiftyPercentage() {
+		a.PickLeftChild()
+	} else {
+		a.PickRightChild()
 	}
 }
