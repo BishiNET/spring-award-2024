@@ -2,7 +2,12 @@ package newaward
 
 import (
 	"crypto/rand"
+	"encoding/binary"
 	"io"
+)
+
+const (
+	SIZE = 36
 )
 
 type ChildAction struct {
@@ -60,7 +65,7 @@ func WithNoAwardAction(one func()) Options {
 
 func NewAward(opts ...Options) *Award {
 	a := &Award{
-		buf:              make([]byte, 16),
+		buf:              make([]byte, SIZE),
 		oneAction:        func() {},
 		noAwardAction:    func() {},
 		leftChildAction:  NewDummyChildAction(),
@@ -76,33 +81,33 @@ func NewAward(opts ...Options) *Award {
 func (a *Award) checkOverhead(required int) {
 	if a.left <= required {
 		io.ReadFull(rand.Reader, a.buf)
-		a.left = 16
+		a.left = SIZE
 	}
 }
 
 func (a *Award) FiftyPercentage() bool {
 	a.checkOverhead(1)
-	base := a.buf[16-a.left:]
+	base := a.buf[SIZE-a.left:]
 	expect := base[0] % 2
 	a.left--
 	return expect == 0
 }
 
 func (a *Award) OnePercentage() bool {
-	a.checkOverhead(2)
-	base := a.buf[16-a.left:]
-	expect := base[0] % 100
-	r := base[1] % 100
-	a.left -= 2
+	a.checkOverhead(8)
+	base := a.buf[SIZE-a.left:]
+	expect := binary.LittleEndian.Uint32(base[0:4]) % 100
+	r := binary.LittleEndian.Uint32(base[4:8]) % 100
+	a.left -= 8
 	return r == expect
 }
 
 func (a *Award) TwentyPercentage() bool {
-	a.checkOverhead(2)
-	base := a.buf[16-a.left:]
-	expect := base[0] % 5
-	r := base[1] % 5
-	a.left -= 2
+	a.checkOverhead(8)
+	base := a.buf[SIZE-a.left:]
+	expect := binary.LittleEndian.Uint32(base[0:4]) % 5
+	r := binary.LittleEndian.Uint32(base[4:8]) % 5
+	a.left -= 8
 	return r == expect
 }
 
