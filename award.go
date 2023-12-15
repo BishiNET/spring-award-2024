@@ -93,7 +93,7 @@ func (a *Award) get(required int) []byte {
 }
 
 func (a *Award) FiftyPercentage() bool {
-	return binary.LittleEndian.Uint64(a.get(8))%2 == 0
+	return binary.LittleEndian.Uint64(a.get(8))&1 == 0
 }
 
 func (a *Award) OnePercentage() bool {
