@@ -74,40 +74,39 @@ func NewAward(opts ...Options) *Award {
 	for _, o := range opts {
 		o(a)
 	}
-	a.checkOverhead(0)
+	a.get(0)
 	return a
 }
 
-func (a *Award) checkOverhead(required int) {
+func (a *Award) get(required int) []byte {
 	if a.left <= required {
 		io.ReadFull(rand.Reader, a.buf)
 		a.left = SIZE
 	}
+
+	if required > 0 {
+		base := a.buf[SIZE-a.left:]
+		a.left -= required
+		return base
+	}
+	return nil
 }
 
 func (a *Award) FiftyPercentage() bool {
-	a.checkOverhead(1)
-	base := a.buf[SIZE-a.left:]
-	expect := base[0] % 2
-	a.left--
-	return expect == 0
+	return a.get(1)[0]%2 == 0
 }
 
 func (a *Award) OnePercentage() bool {
-	a.checkOverhead(8)
-	base := a.buf[SIZE-a.left:]
+	base := a.get(8)
 	expect := binary.LittleEndian.Uint32(base[0:4]) % 100
 	r := binary.LittleEndian.Uint32(base[4:8]) % 100
-	a.left -= 8
 	return r == expect
 }
 
 func (a *Award) TwentyPercentage() bool {
-	a.checkOverhead(8)
-	base := a.buf[SIZE-a.left:]
+	base := a.get(8)
 	expect := binary.LittleEndian.Uint32(base[0:4]) % 5
 	r := binary.LittleEndian.Uint32(base[4:8]) % 5
-	a.left -= 8
 	return r == expect
 }
 
