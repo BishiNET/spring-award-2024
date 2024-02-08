@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	SIZE = 36
+	SIZE = 16
 )
 
 type ChildAction struct {
@@ -97,17 +97,15 @@ func (a *Award) FiftyPercentage() bool {
 }
 
 func (a *Award) OnePercentage() bool {
-	base := a.get(8)
+	base := a.get(4)
 	expect := binary.LittleEndian.Uint32(base[0:4]) % 100
-	r := binary.LittleEndian.Uint32(base[4:8]) % 100
-	return r == expect
+	return expect == 1
 }
 
 func (a *Award) TwentyPercentage() bool {
-	base := a.get(8)
+	base := a.get(4)
 	expect := binary.LittleEndian.Uint32(base[0:4]) % 5
-	r := binary.LittleEndian.Uint32(base[4:8]) % 5
-	return r == expect
+	return expect == 1
 }
 
 func (a *Award) PickLeftChild() {
